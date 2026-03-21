@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace yavAPI
+namespace yourAPI
 {
-    public class yavFUNC
+    public class API
     {
         public const string DllName = "yav-module.dll";
 
