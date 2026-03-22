@@ -12,6 +12,11 @@
 
 ---
 
+## DISCORD : https://discord.gg/S8p5RupAbT
+JOIN THE DISCORD IF YOU HAVE ANY INQUIRIES!
+
+---
+
 
 ## How to setup
 
