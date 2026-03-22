@@ -167,7 +167,6 @@ If things don’t work, check:
 
 ## Final Notes
 
-* Your executor is now connected to your custom API
 * You can expand the API with more functions and call them from your UI
 * A video tutorial will also be made for easier understanding
 
