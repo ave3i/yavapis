@@ -165,20 +165,6 @@ If things don’t work, check:
 
 ---
 
-## 11. Optional: Auto Copy DLL
-
-To avoid manual copying:
-
-1. Right-click your API project → **Properties**
-2. Go to **Build Events**
-3. Add a post-build event:
-
-```bat
-copy "$(TargetPath)" "C:\path\to\your\executor\libs\"
-```
-
----
-
 ## Final Notes
 
 * Your executor is now connected to your custom API
