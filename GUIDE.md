@@ -15,87 +15,174 @@
 3. Click **Modify** on your installed version
 4. Select **.NET desktop development**
 5. Click **Install**
-6. Accept any administrator permissions if prompted
+6. Accept administrator permissions if prompted
 
 ---
 
 ### 3. Create a New Project
 
 1. Open Visual Studio
-2. Click **“Create a new project”**
-
-   * You can also press `Alt + S` and search
+2. Click **Create a new project**
 3. Search for:
-   **Class Library (.NET Framework)**
-4. Select it and click **Next**
+
+   ```
+   Class Library (.NET Framework)
+   ```
+4. Click **Next**
 5. Choose:
 
-   * A project name
-   * (Optional) Change the project location
+   * Project name
+   * (Optional) Project location
 6. Click **Create**
 
 ---
 
-### 4. Edit the Project Files
+### 4. Add the API Code
 
-1. Once the project loads, locate the **Solution Explorer**
+1. Open **Solution Explorer**
 
-   * If you don’t see it:
-
-     * Go to **View → Solution Explorer**
-2. Find a file named something like:
+   * If not visible: **View → Solution Explorer**
+2. Open:
 
    ```
    Class1.cs
    ```
-3. Open it
-4. Press:
+3. Press:
 
-   * `Ctrl + A` → select all
-   * `Backspace` → delete everything
-5. Paste the contents of:
+   * `Ctrl + A` → `Backspace`
+4. Paste the contents of:
 
    ```
    API.cs
    ```
 
-   (from your provided GitHub link)
-
 ---
 
 ### 5. Build the Project
 
-⚠️ **Important:**
-Set the build configuration to:
+⚠️ **IMPORTANT:** Set:
 
-* **Debug**
-* **x64**
+* Configuration → **Debug**
+* Platform → **x64**
 
 Then:
 
-1. Go to the top menu
-2. Click **Build → Build Solution**
+* Go to **Build → Build Solution**
 
----
-
-### 6. Expected Output
-
-If everything works, you should see something like:
+You should get a `.dll` file like:
 
 ```
-1>------ Build All started: Project: YourProject, Configuration: Debug x64 ------
-1>  YourProject -> C:\path\to\your\dll\yourapi.dll
-========== Build All: 1 succeeded, 0 failed, 0 skipped ==========
-========== Build completed ==========
+C:\path\to\your\project\bin\Debug\yourapi.dll
 ```
 
 ---
 
-### Notes
+## 6. Adding the DLL to Your Executor
 
-* The compiled `.dll` file is your final API output
-* Make sure all steps are followed exactly, especially the **x64 Debug configuration**
+Now that you have your compiled API, you need to **reference it in your executor project**.
+
+### Step 1: Copy the DLL
+
+* Copy your compiled `.dll` file
+* Paste it into your executor project folder (recommended: create a folder named `libs` or `dependencies`)
 
 ---
 
-A video version of this guide will also be made for easier understanding.
+### Step 2: Add Reference in Visual Studio
+
+1. Open your executor project (WinForms or WPF)
+2. In **Solution Explorer**, right-click:
+
+   ```
+   References
+   ```
+3. Click:
+
+   ```
+   Add Reference...
+   ```
+4. Select **Browse**
+5. Locate and select your `.dll`
+6. Click **Add → OK**
+
+---
+
+## 7. Using the API in Your Executor
+
+### Import the Namespace
+
+At the top of your code file:
+
+```csharp
+using YourAPINamespace;
+```
+
+*(Replace with whatever namespace is inside API.cs)*
+
+---
+
+## 8. Example Usage (WinForms)
+
+Inside a button click:
+
+```csharp
+private void button1_Click(object sender, EventArgs e)
+{
+    var api = new API();
+
+    api.Attach(); // Example function
+    api.Execute("print('Hello from API')");
+}
+```
+
+---
+
+## 9. Example Usage (WPF)
+
+Inside a button handler:
+
+```csharp
+private void Execute_Click(object sender, RoutedEventArgs e)
+{
+    var api = new API();
+
+    api.Attach();
+    api.Execute("print('Hello from API')");
+}
+```
+
+---
+
+## 10. Making Sure It Works
+
+If things don’t work, check:
+
+* ✅ Both projects use **x64**
+* ✅ The DLL is **built in Debug x64**
+* ✅ The reference is added correctly
+* ✅ All dependencies are in the same folder
+* ✅ No missing `.dll` errors on run
+
+---
+
+## 11. Optional: Auto Copy DLL
+
+To avoid manual copying:
+
+1. Right-click your API project → **Properties**
+2. Go to **Build Events**
+3. Add a post-build event:
+
+```bat
+copy "$(TargetPath)" "C:\path\to\your\executor\libs\"
+```
+
+---
+
+## Final Notes
+
+* Your executor is now connected to your custom API
+* You can expand the API with more functions and call them from your UI
+* A video tutorial will also be made for easier understanding
+
+---
