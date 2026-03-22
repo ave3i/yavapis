@@ -109,7 +109,7 @@ Now that you have your compiled API, you need to **reference it in your executor
 
 ### Import the Namespace
 
-At the top of your code file:
+Go to your `.cs` file of your exploit, and at the top of your code file add:
 
 ```csharp
 using yourAPI;
@@ -119,39 +119,25 @@ using yourAPI;
 
 ---
 
-## 8. Example Usage (WinForms)
+## 8. Example Usage
 
 Inside a button click:
 
 ```csharp
 private void button1_Click(object sender, EventArgs e)
 {
-    var api = new API();
-
-    api.Attach(); // Example function
-    api.Execute("print('Hello from API')");
+    API.Attach();
 }
-```
 
----
-
-## 9. Example Usage (WPF)
-
-Inside a button handler:
-
-```csharp
-private void Execute_Click(object sender, RoutedEventArgs e)
+private void button2_Click(object sender, EventArgs e)
 {
-    var api = new API();
-
-    api.Attach();
-    api.Execute("print('Hello from API')");
+    API.Execute(RichTextBox1.Text);
 }
 ```
 
 ---
 
-## 10. Making Sure It Works
+## 9. Making Sure It Works
 
 If things don’t work, check:
 
