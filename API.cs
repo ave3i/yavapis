@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -22,5 +23,27 @@ namespace yourAPI
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool IsAttached();
+
+        public void SetAutoAttach(bool enabled)
+        {
+            if (enabled)
+            {
+                Process[] processes = Process.GetProcessesByName("RobloxPlayerBeta");
+
+                if (processes.Length > 0)
+                {
+                    Attach();
+                }
+            }
+        }
+
+        public void KillRoblox()
+        {
+            Process[] processes = Process.GetProcessesByName("RobloxPlayerBeta");
+            foreach (Process process in processes)
+            {
+                process.Kill();
+            }
+        }
     }
 }
