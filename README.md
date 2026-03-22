@@ -15,7 +15,7 @@
 
 ## How to setup
 
-# [View this guide right here](https://github.com/ave3i/yavapis/blob/main/Guide.md)
+### [Read this guide right here](https://github.com/ave3i/yavapis/blob/main/Guide.md)
 
 ---
 
