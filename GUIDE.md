@@ -52,9 +52,7 @@
    * `Ctrl + A` → `Backspace`
 4. Paste the contents of:
 
-   ```
-   API.cs
-   ```
+[```API.cs```](https://github.com/ave3i/yavapis/blob/main/API.cs)
 
 ---
 
@@ -69,7 +67,7 @@ Then:
 
 * Go to **Build → Build Solution**
 
-You should get a `.dll` file like:
+You should get a `.dll` file in the output right below your code/ui preview like:
 
 ```
 C:\path\to\your\project\bin\Debug\yourapi.dll
@@ -114,7 +112,7 @@ Now that you have your compiled API, you need to **reference it in your executor
 At the top of your code file:
 
 ```csharp
-using YourAPINamespace;
+using yourAPI;
 ```
 
 *(Replace with whatever namespace is inside API.cs)*
