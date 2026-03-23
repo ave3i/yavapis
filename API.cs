@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace yourAPI
 {
@@ -10,9 +11,9 @@ namespace yourAPI
         private static Timer _timer;
         private static bool _executed = false;
 
-        public static const string DllName = "yav-module.dll";
+        public const string DllName = "yav-module.dll";
 
-        private static const string CustomNotif = @"
+        private static string CustomNotif = @"
 game.StarterGui:SetCore(""SendNotification"", {
 Title=""[yourAPI]"",
 Text=""Injected!"",
@@ -43,16 +44,16 @@ Duration=5
             {
             }
         }
-        
+
         private static async void ExecuteInjectNotif(object state)
         {
             if (_executed) return;
-            
+
             if (IsAttached())
             {
                 _executed = true;
                 _timer?.Dispose();
-                
+
                 await Task.Delay(1000);
                 Execute(CustomNotif);
             }
