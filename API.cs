@@ -7,12 +7,12 @@ namespace yourAPI
 {
     public class API
     {
-        private Timer _timer;
-        private bool _executed = false;
+        private static Timer _timer;
+        private static bool _executed = false;
 
-        public const string DllName = "yav-module.dll";
+        public static const string DllName = "yav-module.dll";
 
-        private const string CustomNotif = @"
+        private static const string CustomNotif = @"
 game.StarterGui:SetCore(""SendNotification"", {
 Title=""[yourAPI]"",
 Text=""Injected!"",
@@ -29,7 +29,7 @@ Duration=5
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool IsAttached();
 
-        public void InjectAPI()
+        public static void InjectAPI()
         {
             if (IsAttached())
                 return;
@@ -44,7 +44,7 @@ Duration=5
             }
         }
         
-        private async void ExecuteInjectNotif(object state)
+        private static async void ExecuteInjectNotif(object state)
         {
             if (_executed) return;
             
@@ -58,7 +58,7 @@ Duration=5
             }
         }
 
-        public void SetAutoInject(bool enabled)
+        public static void SetAutoInject(bool enabled)
         {
             if (enabled)
             {
@@ -71,7 +71,7 @@ Duration=5
             }
         }
 
-        public void KillRoblox()
+        public static void KillRoblox()
         {
             Process[] processes = Process.GetProcessesByName("RobloxPlayerBeta");
             foreach (Process process in processes)
