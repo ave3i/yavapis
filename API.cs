@@ -1,29 +1,64 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace yourAPI
 {
     public class API
     {
+        private Timer _timer;
+        private bool _executed = false;
+
         public const string DllName = "yav-module.dll";
 
+        private const string CustomNotif = @"
+game.StarterGui:SetCore(""SendNotification"", {
+Title=""[yourAPI]"",
+Text=""Injected!"",
+Duration=5
+})";
+
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Attach();
+        private static extern void Attach();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         public static extern void Execute([MarshalAs(UnmanagedType.LPWStr)] string input);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool IsAttached();
+        private static extern bool IsAttached();
 
-        public void SetAutoAttach(bool enabled)
+        public void InjectAPI()
+        {
+            if (IsAttached())
+                return;
+
+            try
+            {
+                Attach();
+                _timer = new Timer(ExecuteInjectNotif, null, 0, 500);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+        
+        private async void ExecuteInjectNotif(object state)
+        {
+            if (_executed) return;
+            
+            if (IsAttached())
+            {
+                _executed = true;
+                _timer?.Dispose();
+                
+                await Task.Delay(1000);
+                Execute(CustomNotif);
+            }
+        }
+
+        public void SetAutoInject(bool enabled)
         {
             if (enabled)
             {
@@ -31,7 +66,7 @@ namespace yourAPI
 
                 if (processes.Length > 0)
                 {
-                    Attach();
+                    InjectAPI();
                 }
             }
         }
