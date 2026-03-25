@@ -1,83 +1,89 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using System.Windows.Forms;
 
 namespace yourAPI
 {
-    public class API
+    public static class API
     {
-        private static Timer _timer;
-        private static bool _executed = false;
-
-        public const string DllName = "yav-module.dll";
-
-        private static string CustomNotif = @"
-game.StarterGui:SetCore(""SendNotification"", {
-Title=""[yourAPI]"",
-Text=""Injected!"",
-Duration=5
-})";
+        private const string DllName = "yav-module.dll";
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void Attach();
+        public static extern void Connect();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        public static extern void Execute([MarshalAs(UnmanagedType.LPWStr)] string input);
+        private static extern void ExecuteScript(string input, string pid);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool IsAttached();
+        private static extern IntPtr ReturnConnected(out int count);
 
-        public static void InjectAPI()
+        public static void Execute(string script)
         {
-            if (IsAttached())
+            if (string.IsNullOrWhiteSpace(script))
                 return;
 
-            try
-            {
-                Attach();
-                _timer = new Timer(ExecuteInjectNotif, null, 0, 500);
-            }
-            catch (Exception ex)
-            {
-            }
+            var pids = GetConnectedPIDs();
+
+            if (pids.Count == 0)
+                return;
+
+            string pid_str = string.Join(",", pids);
+            ExecuteScript(script, pid_str);
         }
 
-        private static async void ExecuteInjectNotif(object state)
+        public static List<int> GetConnectedPIDs()
         {
-            if (_executed) return;
+            List<int> result = new List<int>();
 
-            if (IsAttached())
-            {
-                _executed = true;
-                _timer?.Dispose();
+            IntPtr ptr = ReturnConnected(out int count);
 
-                await Task.Delay(1000);
-                Execute(CustomNotif);
-            }
+            if (ptr == IntPtr.Zero || count <= 0)
+                return result;
+
+            int[] pids = new int[count];
+            Marshal.Copy(ptr, pids, 0, count);
+
+            result.AddRange(pids);
+            return result;
         }
 
-        public static void SetAutoInject(bool enabled)
+        public static bool IsConnected()
         {
-            if (enabled)
-            {
-                Process[] processes = Process.GetProcessesByName("RobloxPlayerBeta");
+            return GetConnectedPIDs().Count > 0;
+        }
 
-                if (processes.Length > 0)
-                {
-                    InjectAPI();
-                }
-            }
+        public static List<int> GetRobloxPIDs()
+        {
+            return Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToList();
+        }
+
+        public static bool IsRobloxOpen()
+        {
+            return Process.GetProcessesByName("RobloxPlayerBeta").Length > 0;
         }
 
         public static void KillRoblox()
         {
-            Process[] processes = Process.GetProcessesByName("RobloxPlayerBeta");
-            foreach (Process process in processes)
-            {
+            foreach (var process in Process.GetProcessesByName("RobloxPlayerBeta"))
                 process.Kill();
+        }
+
+        public static void AutoConnect()
+        {
+            if (Process.GetProcessesByName("RobloxPlayerBeta").Length > 0)
+            {
+                try
+                {
+                    Connect();
+                }
+                catch 
+                { 
+                    MessageBox.Show("Failed to AutoConnect. Please try\n connecting manually.", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
     }
