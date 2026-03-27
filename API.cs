@@ -11,6 +11,7 @@ namespace yourAPI
     public static class API
     {
         private const string DllName = "yav-module.dll";
+        private static string discord_server = "https://discord.gg/yourserver";
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Connect();
@@ -35,6 +36,13 @@ namespace yourAPI
             ExecuteScript(script, pid_str);
         }
 
+        public static void InjectAPI()
+        {
+            Process.Start(discord_server);
+            Connect();
+            Execu
+        }
+
         public static List<int> GetConnectedPIDs()
         {
             List<int> result = new List<int>();
@@ -51,7 +59,7 @@ namespace yourAPI
             return result;
         }
 
-        public static bool IsConnected()
+        public static bool IsInjected()
         {
             return GetConnectedPIDs().Count > 0;
         }
@@ -72,16 +80,17 @@ namespace yourAPI
                 process.Kill();
         }
 
-        public static void AutoConnect()
+        public static void AutoInject()
         {
             if (Process.GetProcessesByName("RobloxPlayerBeta").Length > 0)
             {
                 try
                 {
+                    Process.Start(discord_server);
                     Connect();
                 }
-                catch 
-                { 
+                catch
+                {
                     MessageBox.Show("Failed to AutoConnect. Please try\n connecting manually.", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
