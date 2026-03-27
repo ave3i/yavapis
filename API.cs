@@ -14,7 +14,7 @@ namespace yourAPI
         private static string discord_server = "https://discord.gg/yourserver";
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Connect();
+        private static extern void Connect();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         private static extern void ExecuteScript(string input, string pid);
