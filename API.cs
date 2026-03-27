@@ -36,11 +36,29 @@ namespace yourAPI
             ExecuteScript(script, pid_str);
         }
 
+        public static bool IsInjected()
+        {
+            return GetConnectedPIDs().Count > 0;
+        }
+
+        private static async Task checkInjectStatus()
+        {
+            while (true)
+            {
+                await Task.Delay(5000);
+                if (isInjected())
+                {
+                    Execute("print('yourAPI Injected!')");
+                    break;
+                }
+            }
+        }
+        
         public static void InjectAPI()
         {
             Process.Start(discord_server);
             Connect();
-            Execu
+            checkInjectStatus();
         }
 
         public static List<int> GetConnectedPIDs()
@@ -57,11 +75,6 @@ namespace yourAPI
 
             result.AddRange(pids);
             return result;
-        }
-
-        public static bool IsInjected()
-        {
-            return GetConnectedPIDs().Count > 0;
         }
 
         public static List<int> GetRobloxPIDs()
