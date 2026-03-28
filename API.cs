@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Windows.Forms;
 
 namespace yourAPI
 {
@@ -104,7 +102,6 @@ namespace yourAPI
                 }
                 catch
                 {
-                    MessageBox.Show("Failed to AutoConnect. Please try\n connecting manually.", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
