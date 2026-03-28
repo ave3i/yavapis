@@ -8,7 +8,7 @@
 
 | Type | Version Hash |
 |-------|-------|
-| Version | `ae421f0582e54718` |
+| Version | `6776addb8fbc4d17` |
 
 ---
 
