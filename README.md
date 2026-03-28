@@ -28,7 +28,7 @@ JOIN THE DISCORD IF YOU HAVE ANY INQUIRIES!
 
 ```cs
 // Inject
-        yourAPI.API.Attach();
+        yourAPI.API.InjectAPI();
 ```
 ```cs
 // Execute
