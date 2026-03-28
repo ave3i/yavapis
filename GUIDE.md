@@ -126,7 +126,7 @@ Inside a button click:
 ```csharp
 private void button1_Click(object sender, EventArgs e)
 {
-    API.Attach();
+    API.InjectAPI();
 }
 
 private void button2_Click(object sender, EventArgs e)
