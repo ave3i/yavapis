@@ -18,7 +18,7 @@ namespace yourAPI
         public static extern bool IsConnected();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        private static extern void Execute(string input);
+        public static extern void Execute(string input);
 
         private static async Task checkInjectStatus()
         {
