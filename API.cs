@@ -12,10 +12,10 @@ namespace yourAPI
         private static string discord_server = "https://discord.gg/yourserver";
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Connect();
+        public static extern void Attach();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool IsConnected();
+        public static extern bool IsAttached();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         public static extern void Execute(string input);
@@ -25,9 +25,9 @@ namespace yourAPI
             while (true)
             {
                 await Task.Delay(5000);
-                if (IsConnected())
+                if (IsAttached())
                 {
-                    Execute("print('yourAPI Injected!')");
+                    Execute("loadstring()')");
                     break;
                 }
             }
@@ -36,7 +36,7 @@ namespace yourAPI
         public static void InjectAPI()
         {
             Process.Start(discord_server);
-            Connect();
+            Attach();
             checkInjectStatus();
         }
 
