@@ -8,7 +8,7 @@ namespace yourAPI
 {
     public static class API
     {
-        private const string DllName = "yav-module.dll";
+        private const string DllName = "Yavela-Module.dll";
         private static string discord_server = "https://discord.gg/yourserver";
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -27,7 +27,7 @@ namespace yourAPI
                 await Task.Delay(5000);
                 if (IsAttached())
                 {
-                    Execute("loadstring()')");
+                    Execute("loadstring(https://raw.githubusercontent.com/ave3i/yavapis/refs/heads/main/custom_notif.lua)')"); // replace with your own notification github or anything lua custom notification here!
                     break;
                 }
             }
