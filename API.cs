@@ -29,8 +29,6 @@ namespace yourAPI
         private static readonly string local_appdata =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Yavela");
 
-        private static readonly string discord_server = "https://discord.gg/yourserver";
-
         private static void CreateShortcut(string targetDir, string shortcutDir)
         {
             string shortcutPath = Path.Combine(shortcutDir, "Yavela Data.lnk");
@@ -66,18 +64,21 @@ namespace yourAPI
                 string workspace = Directory.CreateDirectory(Path.Combine(local_appdata, "Workspace")).FullName;
                 string autoexec = Directory.CreateDirectory(Path.Combine(local_appdata, "AutoExec")).FullName;
 
-                CreateShortcut(local_appdata, AppDomain.CurrentDomain.BaseDirectory);
+                string original_dir = AppDomain.CurrentDomain.BaseDirectory;
+                CreateShortcut(local_appdata, original_dir);
 
-                string attacherp = Path.Combine(bin, "yavela-attach.exe");
+                string initializerp = Path.Combine(bin, "initializer.exe");
                 string decompilerp = Path.Combine(bin, "Decompiler.exe");
-                string _version = Path.Combine(bin, "current_version.txt");
 
-                string remote_version = (await _http.GetStringAsync("https://files.yavela.xyz/data/api/current_version.txt")).Trim();
+                string _version = Path.Combine(bin, "current_version.txt");
+                string version_url = "https://files.yavela.xyz/data/api/current_version.txt";
+
+                string remote_version = (await _http.GetStringAsync(version_url)).Trim();
                 string local_version = File.Exists(_version) ? File.ReadAllText(_version).Trim() : "";
 
                 bool outdated = local_version != remote_version;
 
-                if (outdated || !File.Exists(attacherp))
+                if (outdated || !File.Exists(initializerp))
                 {
                     string zipPath = Path.Combine(bin, "attachment.zip");
                     await DownloadFile("https://files.yavela.xyz/data/api/attachment.zip", zipPath);
@@ -143,13 +144,15 @@ namespace yourAPI
             {
                 CurrentState = State.Attaching;
 
-                string attacherp = Path.Combine(local_appdata, "Bin", "yavela-attach.exe");
-                if (File.Exists(attacherp))
+                string initializerp = Path.Combine(local_appdata, "Bin", "initializer.exe");
+                if (File.Exists(initializerp))
+                {
                     await StartCommunication();
+                }
 
                 var psi = new ProcessStartInfo
                 {
-                    FileName = attacherp,
+                    FileName = initializerp,
                     Arguments = pid.ToString(),
                     UseShellExecute = false,
                     CreateNoWindow = true
@@ -167,7 +170,7 @@ namespace yourAPI
 
         public static void AutoAttach()
         {
-            if (!IsRobloxOpen()) return;
+            if (!RobloxFUNC.IsRobloxOpen()) return;
             Attach();
         }
 
@@ -177,11 +180,11 @@ namespace yourAPI
             {
                 CurrentState = State.Detaching;
 
-                var decompiler = Process.GetProcessesByName("Decompiler").FirstOrDefault();
-                if (decompiler != null && !decompiler.HasExited)
-                    decompiler.Kill();
+                Process process = Process.GetProcessesByName("Decompiler").FirstOrDefault();
+                if (process != null && !process.HasExited)
+                    process.Kill();
 
-                var usermode = Process.GetProcessesByName("yavela-attach").FirstOrDefault();
+                Process usermode = Process.GetProcessesByName("initializer").FirstOrDefault();
                 if (usermode != null && !usermode.HasExited)
                     usermode.Kill();
 
