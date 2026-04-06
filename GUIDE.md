@@ -1,11 +1,5 @@
 ## Setup Guide
 
-### 1. Download Dependencies
-
-* Download **Dependencies.zip**
-* Extract it into your executor’s folder
-* Make sure you already created the API (explained below)
-
 ---
 
 ### 2. Install Visual Studio
@@ -33,7 +27,8 @@
 
    * Project name
    * (Optional) Project location
-6. Click **Create**
+6. The Project must be on **.NET 4.8**!
+7. Click **Create**
 
 ---
 
@@ -137,7 +132,7 @@ private void button2_Click(object sender, EventArgs e)
 
 ---
 
-## 9. Making Sure It Works
+## 9. Troubleshooting
 
 If things don’t work, check:
 
@@ -146,6 +141,11 @@ If things don’t work, check:
 * ✅ The reference is added correctly
 * ✅ All dependencies are in the same folder
 * ✅ No missing `.dll` errors on run
+
+Also, if you get an error like :
+`The name 'ZipFile' does not exist in the current context`
+
+Hover over the error'ed text, and press Install `System.IO.Compression`, and you also need to install `System.IO.Compression.FileSystem`.
 
 ---
 
