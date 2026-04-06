@@ -170,7 +170,7 @@ namespace yourAPI
 
         public static void AutoAttach()
         {
-            if (!RobloxFUNC.IsRobloxOpen()) return;
+            if (!IsRobloxOpen()) return;
             Attach();
         }
 
