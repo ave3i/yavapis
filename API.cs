@@ -1,93 +1,96 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace yourAPI
 {
+
     public static class API
     {
-        public enum State
-        {
-            Idle,
-            Attaching,
-            Attached,
-            Detaching,
-            Error
-        }
+        private const string DLL_NAME = "Yavela-Module.dll";
+
+        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void ExecuteScript(string Source, uint PID);
+
+        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Attach(uint PID);
+
+        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsAttached();
+
+        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern uint ReturnRobloxInstancesUserIDs(StringBuilder outBuf, uint bufLen, uint PID);
+
+        // ---
 
         private static readonly HttpClient _http = new HttpClient();
-        private static List<int> attached_pids = new List<int>();
 
-        public static State CurrentState { get; private set; } = State.Idle;
-
-        private static readonly string local_appdata =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Yavela");
-
-        private static void CreateShortcut(string targetDir, string shortcutDir)
+        private static int[] GetPIDs()
         {
-            string shortcutPath = Path.Combine(shortcutDir, "Yavela Data.lnk");
-            if (File.Exists(shortcutPath)) return;
-
-            Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-            dynamic shell = Activator.CreateInstance(shellType);
-            var shortcut = shell.CreateShortcut(shortcutPath);
-            shortcut.TargetPath = targetDir;
-            shortcut.Description = "Yavela AppData Folder";
-            shortcut.Save();
+            return Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToArray();
         }
 
-        public static async Task Execute(string src, int pid = 0)
+        public static async Task Execute(string Source, int PID = 0)
         {
-            if (pid != 0)
-                await _http.PostAsync($"http://127.0.0.1:28931/execute/{pid}", new StringContent(src));
-            else
-                await _http.PostAsync("http://127.0.0.1:28931/execute", new StringContent(src));
+            if (PID == 0)
+            {
+
+                foreach (int PIDD in GetPIDs())
+                {
+                    ExecuteScript(Source, (uint)PIDD);
+                }
+            }
+            else 
+            {
+                ExecuteScript(Source, (uint)PID);
+            }
         }
 
-        private static async Task DownloadFile(string url, string dest)
+        private static async Task DownloadFile(string URL, string Dest)
         {
-            var bytes = await _http.GetByteArrayAsync(url);
-            File.WriteAllBytes(dest, bytes);
+            var Bytes = await _http.GetByteArrayAsync(URL);
+            File.WriteAllBytes(Dest, Bytes);
         }
 
-        public static async Task StartCommunication()
+        private static async Task StartCommunication()
         {
             try
             {
-                string bin = Directory.CreateDirectory(Path.Combine(local_appdata, "Bin")).FullName;
-                string workspace = Directory.CreateDirectory(Path.Combine(local_appdata, "Workspace")).FullName;
-                string autoexec = Directory.CreateDirectory(Path.Combine(local_appdata, "AutoExec")).FullName;
+                string Bin = Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Bin")).FullName;
+                string ModulePath = Path.Combine(Bin, DLL_NAME);
+                string DecompilerPath = Path.Combine(Bin, "Decompiler.exe");
 
-                string original_dir = AppDomain.CurrentDomain.BaseDirectory;
-                CreateShortcut(local_appdata, original_dir);
+                Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Workspace"));
+                Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AutoExec"));
 
-                string initializerp = Path.Combine(bin, "initializer.exe");
-                string decompilerp = Path.Combine(bin, "Decompiler.exe");
+                string Version = Path.Combine(Bin, "current_version.txt");
+                string VersionURL = "https://files.yavela.xyz/data/api/current_version.txt";
 
-                string _version = Path.Combine(bin, "current_version.txt");
-                string version_url = "https://files.yavela.xyz/data/api/current_version.txt";
+                string LatestVersion = (await _http.GetStringAsync(VersionURL)).Trim();
+                string LocalVersion = File.Exists(Version) ? File.ReadAllText(Version).Trim() : "";
 
-                string remote_version = (await _http.GetStringAsync(version_url)).Trim();
-                string local_version = File.Exists(_version) ? File.ReadAllText(_version).Trim() : "";
+                bool Outdated = LocalVersion != LatestVersion;
 
-                bool outdated = local_version != remote_version;
-
-                if (outdated || !File.Exists(initializerp))
+                if (Outdated || !File.Exists(ModulePath))
                 {
-                    string zipPath = Path.Combine(bin, "attachment.zip");
-                    await DownloadFile("https://files.yavela.xyz/data/api/attachment.zip", zipPath);
+                    string zipPath = Path.Combine(Bin, "Components.zip");
+                    await DownloadFile("https://files.yavela.xyz/data/api/Components.zip", zipPath);
 
                     using (var archive = ZipFile.OpenRead(zipPath))
                     {
                         foreach (var entry in archive.Entries)
                         {
-                            string destPath = Path.Combine(bin, entry.FullName);
+                            string destPath = Path.Combine(Bin, entry.FullName);
                             if (!string.IsNullOrEmpty(entry.Name))
                                 entry.ExtractToFile(destPath, overwrite: true);
                         }
@@ -96,104 +99,14 @@ namespace yourAPI
                     File.Delete(zipPath);
                 }
 
-                if (outdated || !File.Exists(decompilerp))
-                    await DownloadFile("https://files.yavela.xyz/data/api/Decompiler.exe", decompilerp);
+                if (Outdated || !File.Exists(DecompilerPath))
+                    await DownloadFile("https://files.yavela.xyz/data/api/Decompiler.exe", DecompilerPath);
 
-                if (outdated)
-                    File.WriteAllText(_version, remote_version);
-
-                var valid_exts = new[] { ".txt", ".lua", ".luau" };
-
-                foreach (var file in Directory.GetFiles(autoexec))
-                {
-                    if (!valid_exts.Contains(Path.GetExtension(file).ToLower())) continue;
-                    string src = File.ReadAllText(file);
-                    if (!string.IsNullOrWhiteSpace(src))
-                        await Execute(src);
-                }
+                if (Outdated)
+                    File.WriteAllText(Version, LatestVersion);
             }
             catch
             {
-                CurrentState = State.Error;
-            }
-        }
-
-        public static Task<bool> IsAttached()
-        {
-            try
-            {
-                if (attached_pids.Count > 0)
-                {
-                    CurrentState = State.Attached;
-                    return Task.FromResult(true);
-                }
-
-                CurrentState = State.Idle;
-                return Task.FromResult(false);
-            }
-            catch
-            {
-                CurrentState = State.Error;
-                return Task.FromResult(false);
-            }
-        }
-
-        public static async void Attach(int pid = 0)
-        {
-            try
-            {
-                CurrentState = State.Attaching;
-
-                string initializerp = Path.Combine(local_appdata, "Bin", "initializer.exe");
-                if (File.Exists(initializerp))
-                {
-                    await StartCommunication();
-                }
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = initializerp,
-                    Arguments = pid.ToString(),
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                Process.Start(psi);
-
-                attached_pids.Add(pid);
-                CurrentState = State.Attached;
-            }
-            catch
-            {
-                CurrentState = State.Error;
-            }
-        }
-
-        public static void AutoAttach()
-        {
-            if (!IsRobloxOpen()) return;
-            Attach();
-        }
-
-        public static void StopCommunication()
-        {
-            try
-            {
-                CurrentState = State.Detaching;
-
-                Process process = Process.GetProcessesByName("Decompiler").FirstOrDefault();
-                if (process != null && !process.HasExited)
-                    process.Kill();
-
-                Process usermode = Process.GetProcessesByName("initializer").FirstOrDefault();
-                if (usermode != null && !usermode.HasExited)
-                    usermode.Kill();
-
-                attached_pids.Clear();
-                CurrentState = State.Idle;
-            }
-            catch
-            {
-                CurrentState = State.Error;
             }
         }
 
@@ -202,7 +115,7 @@ namespace yourAPI
             while (true)
             {
                 await Task.Delay(5000);
-                if (await IsAttached())
+                if (IsAttached())
                 {
                     await Execute("print('[yourAPI] Successfully Attached!')");
                     break;
@@ -210,35 +123,49 @@ namespace yourAPI
             }
         }
 
-        public static void InjectAPI()
+        private static async Task MainInj(int PID = 0)
         {
-            Attach();
+            await StartCommunication();
+            if (PID == 0)
+            {
+                foreach (int PIDD in GetPIDs())
+                {
+                    Attach((uint)PIDD);
+                }
+
+            }
+            else
+            {
+                Attach((uint)PID);
+            }
+        }
+
+        public static async Task AttachAPI(int PID = 0)
+        {
+           await MainInj(PID);
             _ = CheckInjectStatus();
         }
 
-        public static List<int> GetRobloxPIDs()
+        public static List<ulong> GetUserIDs(int PID = 0)
         {
-            return Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToList();
+            uint Needed = ReturnRobloxInstancesUserIDs(null, 0, (uint)PID);
+
+            if (Needed == 0)
+                return new List<ulong>();
+
+            var Buffer = new StringBuilder((int)Needed);
+
+            ReturnRobloxInstancesUserIDs(Buffer, Needed, (uint)PID);
+
+            string Result = Buffer.ToString();
+
+            return Result.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(X => ulong.TryParse(X, out var Val) ? Val : 0).Where(X => X != 0).ToList();
         }
 
-        public static bool IsRobloxOpen()
+        public static void AutoAttach()
         {
-            return Process.GetProcessesByName("RobloxPlayerBeta").Length > 0;
-        }
-
-        public static void KillRoblox()
-        {
-            foreach (var p in Process.GetProcessesByName("RobloxPlayerBeta"))
-                p.Kill();
-        }
-
-        public static void AutoInject()
-        {
-            if (IsRobloxOpen())
-            {
-                try { Attach(); }
-                catch { }
-            }
+            if (!RobloxFUNC.IsRobloxOpen()) return;
+            AttachAPI();
         }
     }
 }
