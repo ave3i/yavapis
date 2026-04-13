@@ -61,8 +61,9 @@ Then:
 
 * Go to **Build → Build Solution**
 
-Before you build, you can change the name of the dll file by going to Project → Properties → On the top left where it says `Assembly Name`, and change `Default Namespace` to what you named your namespace.
-You should get a `.dll` file in the output right below your code/ui preview like:
+Before you build, you can change the name of the dll file by going to Project → Properties → On the top 
+left where it says `Assembly Name`, and change `Default Namespace` to what you named your namespace.
+\nYou should get a `.dll` file in the output right below your code/ui preview like:
 
 ```
 C:\path\to\your\project\bin\Debug\YourAPI.dll
