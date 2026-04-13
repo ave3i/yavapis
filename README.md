@@ -28,11 +28,11 @@ JOIN THE DISCORD IF YOU HAVE ANY INQUIRIES!
 
 ```cs
 // Inject
-        yourAPI.API.AttachWithAPI();
+        yourAPI.API.AttachWithAPI(pid); // PID PARAMETER IS OPTIONAL!
 ```
 ```cs
 // Execute
-        yourAPI.API.Execute(RichTextBox1.Text);
+        yourAPI.API.Execute(RichTextBox1.Text, pid); // PID PARAMETER IS OPTIONAL!
 ```
 <div align="center">
 Use Responsibly! Any missuse is not our fault.
