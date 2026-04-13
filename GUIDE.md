@@ -45,9 +45,8 @@
 3. Press:
 
    * `Ctrl + A` → `Backspace`
-4. Paste the contents of:
-
-[```API.cs```](https://github.com/ave3i/yavapis/blob/main/API.cs)
+4. Paste the contents of [```API.cs```](https://github.com/ave3i/yavapis/blob/main/API.cs), and replace wherever `yourAPI` 
+is with your API/Project name or generally whatever you want.
 
 ---
 
@@ -62,10 +61,11 @@ Then:
 
 * Go to **Build → Build Solution**
 
+Before you build, you can change the name of the dll file by going to Project → Properties → On the top left where it says `Assembly Name`, and change `Default Namespace` to what you named your namespace.
 You should get a `.dll` file in the output right below your code/ui preview like:
 
 ```
-C:\path\to\your\project\bin\Debug\yourapi.dll
+C:\path\to\your\project\bin\Debug\YourAPI.dll
 ```
 
 ---
@@ -77,7 +77,7 @@ Now that you have your compiled API, you need to **reference it in your executor
 ### Step 1: Copy the DLL
 
 * Copy your compiled `.dll` file
-* Paste it into your executor project folder (recommended: create a folder named `libs` or `dependencies`)
+* Paste it into your executor project folder.
 
 ---
 
