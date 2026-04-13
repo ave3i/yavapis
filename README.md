@@ -8,7 +8,7 @@
 
 | Type | Version Hash |
 |-------|-------|
-| Version | `689e359b09ad43b0` |
+| Version | `Latest` |
 
 ---
 
