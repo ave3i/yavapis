@@ -1,70 +1,47 @@
-## Setup Guide
+# Setup Guide
 
 ---
 
-### 2. Install Visual Studio
+## 2. Install Visual Studio
 
-1. Download **Visual Studio 2022 or 2026**
-2. Open the **Visual Studio Installer**
-3. Click **Modify** on your installed version
-4. Select **.NET desktop development**
-5. Click **Install**
-6. Accept administrator permissions if prompted
+Download **Visual Studio 2022 or 2026**, then open the **Visual Studio Installer**.
 
----
-
-### 3. Create a New Project
-
-1. Open Visual Studio
-2. Click **Create a new project**
-3. Search for:
-
-   ```
-   Class Library (.NET Framework)
-   ```
-4. Click **Next**
-5. Choose:
-
-   * Project name
-   * (Optional) Project location
-6. The Project must be on **.NET 4.8**!
-7. Click **Create**
+1. Click **Modify** on your installed version
+2. Select **.NET desktop development**
+3. Click **Install** and accept any administrator prompts
 
 ---
 
-### 4. Add the API Code
+## 3. Create a New Project
 
-1. Open **Solution Explorer**
-
-   * If not visible: **View → Solution Explorer**
-2. Open:
-
-   ```
-   Class1.cs
-   ```
-3. Press:
-
-   * `Ctrl + A` → `Backspace`
-4. Paste the contents of [```API.cs```](https://github.com/ave3i/yavapis/blob/main/API.cs), and replace wherever `yourAPI` 
-is with your API/Project name or generally whatever you want.
+1. Open Visual Studio and click **Create a new project**
+2. Search for and select **Class Library (.NET Framework)**
+3. Click **Next** and fill in your project name and location
+4. ⚠️ Make sure the framework is set to **.NET 4.8**
+5. Click **Create**
 
 ---
 
-### 5. Build the Project
+## 4. Add the API Code
 
-⚠️ **IMPORTANT:** Set:
+1. Open **Solution Explorer** — if it's not visible, go to **View → Solution Explorer**
+2. Open `Class1.cs`
+3. Select all with `Ctrl + A`, then delete with `Backspace`
+4. Paste the contents of [`API.cs`](https://github.com/ave3i/yavapis/blob/main/API.cs)
+5. Replace every instance of `yourAPI` with your chosen API/project name
 
-* Configuration → **Debug**
-* Platform → **x64**
+---
 
-Then:
+## 5. Build the Project
 
-* Go to **Build → Build Solution**
+> ⚠️ Before building, make sure these are set correctly:
+> - Configuration → **Debug**
+> - Platform → **x64**
 
-Before you build, you can change the name of the dll file by going to Project → Properties → On the top 
-left where it says `Assembly Name`, and change `Default Namespace` to what you named your namespace.
-\nYou should get a `.dll` file in the output right below your code/ui preview like:
+**Optional — rename your DLL output:**
+Go to **Project → Properties** and change the `Assembly Name` and `Default Namespace` to your chosen name.
 
+Then build via **Build → Build Solution**. Your `.dll` will appear at:
 ```
 C:\path\to\your\project\bin\Debug\YourAPI.dll
 ```
@@ -73,61 +50,37 @@ C:\path\to\your\project\bin\Debug\YourAPI.dll
 
 ## 6. Adding the DLL to Your Executor
 
-Now that you have your compiled API, you need to **reference it in your executor project**.
+### Step 1 — Copy the DLL
+Copy your compiled `.dll` and paste it into your executor project folder.
 
-### Step 1: Copy the DLL
-
-* Copy your compiled `.dll` file
-* Paste it into your executor project folder.
-
----
-
-### Step 2: Add Reference in Visual Studio
-
+### Step 2 — Reference it in Visual Studio
 1. Open your executor project (WinForms or WPF)
-2. In **Solution Explorer**, right-click:
-
-   ```
-   References
-   ```
-3. Click:
-
-   ```
-   Add Reference...
-   ```
-4. Select **Browse**
-5. Locate and select your `.dll`
-6. Click **Add → OK**
+2. In **Solution Explorer**, right-click **References**
+3. Click **Add Reference...**
+4. Select **Browse**, locate your `.dll`, then click **Add → OK**
 
 ---
 
-## 7. Using the API in Your Executor
+## 7. Using the API
 
-### Import the Namespace
-
-Go to your `.cs` file of your exploit, and at the top of your code file add:
-
+At the top of your executor's `.cs` file, add:
 ```csharp
-using yourAPI;
+using yourAPI; // Replace with your actual namespace name
 ```
-
-*(Replace with whatever namespace is inside API.cs)*
 
 ---
 
 ## 8. Example Usage
 
-Inside a button click:
-
 ```csharp
 private void button1_Click(object sender, EventArgs e)
 {
-    API.InjectAPI();
+    API.AttachWithAPI(pid); // PID PARAMETER IS OPTIONAL IF YOU WANT TO ATTACH TO ALL PROCESSES!
 }
 
 private void button2_Click(object sender, EventArgs e)
 {
-    API.Execute(RichTextBox1.Text);
+    API.Execute(RichTextBox1.Text, pid); // PID PARAMETER IS OPTIONAL IF YOU WANT TO ATTACH TO ALL PROCESSES!
 }
 ```
 
@@ -135,24 +88,19 @@ private void button2_Click(object sender, EventArgs e)
 
 ## 9. Troubleshooting
 
-If things don’t work, check:
+If something isn't working, run through this checklist:
 
-* ✅ Both projects use **x64**
-* ✅ The DLL is **built in Debug x64**
-* ✅ The reference is added correctly
-* ✅ All dependencies are in the same folder
-* ✅ No missing `.dll` errors on run
-
-Also, if you get an error like :
-`The name 'ZipFile' does not exist in the current context`
-
-Hover over the error'ed text, and press Install `System.IO.Compression`, and you also need to install `System.IO.Compression.FileSystem`.
+| Check | Detail |
+|---|---|
+| ✅ Both projects are **x64** | Mismatched platforms will cause load failures |
+| ✅ DLL built in **Debug x64** | Release builds may behave differently |
+| ✅ Reference added correctly | Verify it appears under References in Solution Explorer |
+| ✅ All dependencies present | Keep all required `.dll` files in the same folder |
+| ✅ No missing DLL errors on run | Check the output window for specific missing files |
 
 ---
 
 ## Final Notes
 
-* You can expand the API with more functions and call them from your UI
-* A video tutorial will also be made for easier understanding
-
----
+- You can extend the API with additional functions and call them from your UI at any time
+- A video tutorial is planned for those who prefer a visual walkthrough
