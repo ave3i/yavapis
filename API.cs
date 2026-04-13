@@ -16,7 +16,7 @@ namespace yourAPI
 
     public static class API
     {
-        private const string DLL_NAME = "Yavela-Module.dll";
+        private const string DLL_NAME = "Yavela.dll";
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void ExecuteScript(string Source, uint PID);
@@ -34,82 +34,54 @@ namespace yourAPI
         // ---
 
         private static readonly HttpClient _http = new HttpClient();
-
-        private static int[] GetPIDs()
+        private static int[] GetPIDs() 
         {
-            return Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToArray();
+            Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToArray();
         }
 
-        public static async Task Execute(string Source, int PID = 0)
+        public static async Task Execute(string source, int pid = 0)
         {
-            if (PID == 0)
-            {
-
-                foreach (int PIDD in GetPIDs())
-                {
-                    ExecuteScript(Source, (uint)PIDD);
-                }
-            }
-            else 
-            {
-                ExecuteScript(Source, (uint)PID);
-            }
+            if (pid == 0)
+                foreach (int p in GetPIDs())
+                    ExecuteScript(source, (uint)p);
+            else
+                ExecuteScript(source, (uint)pid);
         }
 
-        private static async Task DownloadFile(string URL, string Dest)
+        private static async Task SetupAutoExec()
         {
-            var Bytes = await _http.GetByteArrayAsync(URL);
-            File.WriteAllBytes(Dest, Bytes);
+            string autoexec = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AutoExec");
+            if (!Directory.Exists(autoexec)) return;
+
+            foreach (string file in Directory.GetFiles(autoexec, "*.lua"))
+                await Execute(File.ReadAllText(file));
         }
-
-        private static async Task StartCommunication()
+        
+        private static async Task DownloadFiles()
         {
-            try
+            string version_url = "https://files.yavela.xyz/data/api/current_version.txt";
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Bin", "current_version.txt");
+            string link = "https://files.yavela.xyz/data/api/Yavela.dll";
+            string pathh = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Bin", "Yavela.dll");
+
+            using (HttpClient client = new HttpClient())
             {
-                string Bin = Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Bin")).FullName;
-                string ModulePath = Path.Combine(Bin, DLL_NAME);
-                string DecompilerPath = Path.Combine(Bin, "Decompiler.exe");
+                string web = (await client.GetStringAsync(version_url)).Trim();
 
-                Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Workspace"));
-                Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AutoExec"));
+                string local = File.Exists(path)
+                    ? File.ReadAllText(path).Trim()
+                    : string.Empty;
 
-                string Version = Path.Combine(Bin, "current_version.txt");
-                string VersionURL = "https://files.yavela.xyz/data/api/current_version.txt";
+                if (web == local)
+                    return;
 
-                string LatestVersion = (await _http.GetStringAsync(VersionURL)).Trim();
-                string LocalVersion = File.Exists(Version) ? File.ReadAllText(Version).Trim() : "";
+                byte[] bytes = await client.GetByteArrayAsync(link);
+                File.WriteAllBytes(pathh, bytes);
 
-                bool Outdated = LocalVersion != LatestVersion;
-
-                if (Outdated || !File.Exists(ModulePath))
-                {
-                    string zipPath = Path.Combine(Bin, "Components.zip");
-                    await DownloadFile("https://files.yavela.xyz/data/api/Components.zip", zipPath);
-
-                    using (var archive = ZipFile.OpenRead(zipPath))
-                    {
-                        foreach (var entry in archive.Entries)
-                        {
-                            string destPath = Path.Combine(Bin, entry.FullName);
-                            if (!string.IsNullOrEmpty(entry.Name))
-                                entry.ExtractToFile(destPath, overwrite: true);
-                        }
-                    }
-
-                    File.Delete(zipPath);
-                }
-
-                if (Outdated || !File.Exists(DecompilerPath))
-                    await DownloadFile("https://files.yavela.xyz/data/api/Decompiler.exe", DecompilerPath);
-
-                if (Outdated)
-                    File.WriteAllText(Version, LatestVersion);
-            }
-            catch
-            {
+                File.WriteAllText(path, web);
             }
         }
-
+        
         private static async Task CheckInjectStatus()
         {
             while (true)
@@ -125,47 +97,55 @@ namespace yourAPI
 
         private static async Task MainInj(int PID = 0)
         {
-            await StartCommunication();
-            if (PID == 0)
-            {
-                foreach (int PIDD in GetPIDs())
-                {
-                    Attach((uint)PIDD);
-                }
+            await SetupAutoExec();
+            await Task.Delay(100);
+            await DownloadFiles();
 
-            }
+            if (pid == 0)
+                foreach (int p in GetPIDs())
+                    Attach((uint)p);
             else
-            {
-                Attach((uint)PID);
-            }
+                Attach((uint)pid);
         }
 
-        public static async Task AttachAPI(int PID = 0)
+        public static async Task AttachWithAPI(int PID = 0)
         {
            await MainInj(PID);
             _ = CheckInjectStatus();
         }
 
-        public static List<ulong> GetUserIDs(int PID = 0)
+        public static List<ulong> GetUserIDs(int pid = 0)
         {
-            uint Needed = ReturnRobloxInstancesUserIDs(null, 0, (uint)PID);
+            uint targetPid = (uint)pid;
 
-            if (Needed == 0)
+            uint needed = ReturnRobloxInstancesUserIDs(IntPtr.Zero, 0, targetPid);
+            if (needed == 0)
                 return new List<ulong>();
 
-            var Buffer = new StringBuilder((int)Needed);
+            IntPtr buf = Marshal.AllocHGlobal((int)needed + 1);
+            try
+            {
+                uint written = ReturnRobloxInstancesUserIDs(buf, needed + 1, targetPid);
+                if (written == 0)
+                    return new List<ulong>();
 
-            ReturnRobloxInstancesUserIDs(Buffer, Needed, (uint)PID);
-
-            string Result = Buffer.ToString();
-
-            return Result.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(X => ulong.TryParse(X, out var Val) ? Val : 0).Where(X => X != 0).ToList();
+                string result = Marshal.PtrToStringAnsi(buf, (int)written);
+                return result
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => ulong.TryParse(x.Trim(), out var val) ? val : 0)
+                    .Where(x => x != 0)
+                    .ToList();
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buf);
+            }
         }
 
-        public static void AutoAttach()
+        public static async void AutoAttach()
         {
             if (!RobloxFUNC.IsRobloxOpen()) return;
-            AttachAPI();
+            await AttachAPI();
         }
     }
 }
