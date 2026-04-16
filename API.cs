@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -29,14 +30,14 @@ namespace yourAPI
         public static extern bool IsAttached();
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern uint ReturnRobloxInstancesUserIDs(StringBuilder outBuf, uint bufLen, uint PID);
+        private static extern uint ReturnRobloxInstancesUserIDs(IntPtr outBuf, uint bufLen, uint pid);
 
         // ---
 
         private static readonly HttpClient _http = new HttpClient();
-        private static int[] GetPIDs() 
+        private static int[] GetPIDs()
         {
-            Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToArray();
+            return Process.GetProcessesByName("RobloxPlayerBeta").Select(p => p.Id).ToArray();
         }
 
         public static async Task Execute(string source, int pid = 0)
@@ -48,15 +49,15 @@ namespace yourAPI
                 ExecuteScript(source, (uint)pid);
         }
 
-        private static async Task SetupAutoExec()
+        private static async Task SetupAutoexec()
         {
-            string autoexec = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AutoExec");
+            string autoexec = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Autoexec");
             if (!Directory.Exists(autoexec)) return;
 
             foreach (string file in Directory.GetFiles(autoexec, "*.lua"))
                 await Execute(File.ReadAllText(file));
         }
-        
+
         private static async Task DownloadFiles()
         {
             string version_url = "https://files.yavela.xyz/data/api/current_version.txt";
@@ -81,7 +82,6 @@ namespace yourAPI
                 File.WriteAllText(path, web);
             }
         }
-        
         private static async Task CheckInjectStatus()
         {
             while (true)
@@ -95,22 +95,27 @@ namespace yourAPI
             }
         }
 
+        public static bool IsRobloxOpen()
+        {
+            return Process.GetProcessesByName("RobloxPlayerBeta").Length > 0;
+        }
+
         private static async Task MainInj(int PID = 0)
         {
-            await SetupAutoExec();
-            await Task.Delay(100);
             await DownloadFiles();
+            await Task.Delay(100);
+            await SetupAutoexec();
 
-            if (pid == 0)
+            if (PID == 0)
                 foreach (int p in GetPIDs())
                     Attach((uint)p);
             else
-                Attach((uint)pid);
+                Attach((uint)PID);
         }
 
         public static async Task AttachWithAPI(int PID = 0)
         {
-           await MainInj(PID);
+            await MainInj(PID);
             _ = CheckInjectStatus();
         }
 
@@ -144,8 +149,8 @@ namespace yourAPI
 
         public static async void AutoAttach()
         {
-            if (!RobloxFUNC.IsRobloxOpen()) return;
-            await AttachAPI();
+            if (!IsRobloxOpen()) return;
+            await AttachWithAPI();
         }
     }
 }
